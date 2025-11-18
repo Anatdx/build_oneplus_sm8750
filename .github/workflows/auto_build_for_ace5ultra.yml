@@ -1,154 +1,26 @@
-name: Build_oneplus_sm8750
+name: Ace5Ultra自动构建
 on:
-  workflow_dispatch:
-    inputs:
-      DEVICES_NAME:
-        description: "📝请选择要编译的机型："
-        required: true
-        type: choice
-        options:
-          - 'oneplus_13'
-          - 'oneplus_ace5_pro'
-          - 'oneplus_13t'
-          - 'oneplus_pad_2_pro'
-          - 'oneplus_ace5_ultra'
-          - 'realme_GT7'
-          - 'realme_GT7pro'
-          - 'realme_GT7pro_Speed'
-        default: 'oneplus_ace5_pro'
-
-      keep_original_settings:
-        description: "📝保持原内核名称及构建时间(不懂请保持默认)"
-        required: false
-        default: true
-        type: boolean
-
-      custom_kernel_suffix:
-        description: "✏️ 自定义内核名称- 仅在取消勾选'保持原设置'时有效(不懂请保持默认)"
-        required: false
-        default: ''
-      
-      custom_kernel_time:
-        description: "⏰ 自定义构建时间- 仅在取消勾选'保持原设置'时有效(不懂请保持默认)"
-        required: false
-        default: ''
-
-      enable_feature_z:
-        description: "添加完美风驰"
-        required: false
-        default: true
-        type: boolean
-
-      enable_feature_a:
-        description: "开启BBG基带守护"
-        required: false
-        default: true
-        type: boolean
-
-      enable_feature_b:
-         description: "选择网络调度"
-         required: false
-         type: choice
-         options:
-            - 'FQ_CODEL'
-            - 'BBR'
-         default: 'FQ_CODEL'
-      
-       
-
-
+  push
+  
 jobs:
   build:
     name: Build_${{ github.event.inputs.DEVICES_NAME }}
     runs-on: ubuntu-latest
     env:
-      DEVICES_NAME:          ${{ github.event.inputs.DEVICES_NAME }}
-      KEEP_ORIGINAL_SETTINGS: ${{ github.event.inputs.keep_original_settings }}
-      CUSTOM_KERNEL_SUFFIX:   ${{ github.event.inputs.custom_kernel_suffix }}
-      CUSTOM_KERNEL_TIME:     ${{ github.event.inputs.custom_kernel_time }}
-      ENABLE_FEATURE_Z:       ${{ github.event.inputs.enable_feature_z }}
-      ENABLE_FEATURE_A:       ${{ github.event.inputs.enable_feature_a }}
-      ENABLE_FEATURE_B:       ${{ github.event.inputs.enable_feature_b }}
+      DEVICES_NAME: oneplus_ace5_ultra
+      KEEP_ORIGINAL_SETTINGS: true
+      ENABLE_FEATURE_Z: true
+      ENABLE_FEATURE_A: true
+      ENABLE_FEATURE_B: FQ_CODEL
+      DEFAULT_SUFFIX: -android15-8-g29d86c5fc9dd-abogki428889875-4k
+      KERNEL_TIME: Tue Jul  1 19:48:18 UTC 2025
+      REPO_MANIFEST: oneplus_13_b
+      SCHED_FILE: oneplus_13_b
+      
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: ⚙️ Set REPO_MANIFEST (设置对应机型配置文件)
-        run: |
-          case "${{ env.DEVICES_NAME }}" in
-            oneplus_ace5_pro)
-              echo "REPO_MANIFEST=oneplus_ace5_pro_b" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_ace5_pro_b" >> $GITHUB_ENV
-              ;;
-            oneplus_13)
-              echo "REPO_MANIFEST=oneplus_13_b" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_13_b" >> $GITHUB_ENV
-              ;;
-            oneplus_13t)
-              echo "REPO_MANIFEST=oneplus_13t_b" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_13t_b" >> $GITHUB_ENV
-              ;;
-            oneplus_pad_2_pro)
-              echo "REPO_MANIFEST=oneplus_pad_2_pro_b" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_pad_2_pro_b" >> $GITHUB_ENV
-              ;;
-            oneplus_ace5_ultra)
-              echo "REPO_MANIFEST=oneplus_13_b" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_13_b" >> $GITHUB_ENV
-              ;;
-            realme_GT7)
-              echo "REPO_MANIFEST=oneplus_13_b" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_13_b" >> $GITHUB_ENV
-              ;;
-            realme_GT7pro)
-              echo "REPO_MANIFEST=realme_GT7pro" >> $GITHUB_ENV
-              echo "SCHED_FILE=none" >> $GITHUB_ENV
-              ;;
-            realme_GT7pro_Speed)
-              echo "REPO_MANIFEST=oneplus_13_b" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_13_b" >> $GITHUB_ENV
-              ;;
-          esac
-          if [ "${{ env.KEEP_ORIGINAL_SETTINGS }}" = "true" ] && [ -z "${{ github.event.inputs.custom_kernel_suffix }}" ]; then
-            case "${{ env.DEVICES_NAME }}" in
-            oneplus_pad_2_pro)
-              echo 'DEFAULT_SUFFIX=-android15-8-g5a0ffb447c1d-ab13771415-4k' >> $GITHUB_ENV
-              ;;
-            oneplus_13)
-              echo 'DEFAULT_SUFFIX=-android15-8-gf4dc45704e54-abogki446052083-4k' >> $GITHUB_ENV
-              ;;
-            realme_GT7)
-              echo 'DEFAULT_SUFFIX=-android15-8-gd43086512890-abogki423825152-4k' >> $GITHUB_ENV
-              ;;
-            oneplus_ace5_pro | oneplus_13t | oneplus_ace5_ultra | realme_GT7pro_Speed | realme_GT7pro)
-              echo 'DEFAULT_SUFFIX=-android15-8-g29d86c5fc9dd-abogki428889875-4k' >> $GITHUB_ENV
-              ;;
-          esac
-            echo "使用原官核名称：${{ env.DEFAULT_SUFFIX }}"
-          else
-            echo "使用自定义名称: ${{ github.event.inputs.custom_kernel_suffix }}"
-            echo "DEFAULT_SUFFIX=${{ github.event.inputs.custom_kernel_suffix }}" >> $GITHUB_ENV
-          fi
-          if [ "${{ env.KEEP_ORIGINAL_SETTINGS }}" = "true" ] && [ -z "${{ github.event.inputs.custom_kernel_time }}" ]; then
-            case "${{ env.DEVICES_NAME }}" in
-              oneplus_pad_2_pro)
-                echo 'KERNEL_TIME=Fri Jul 11 22:46:09 UTC 2025' >> $GITHUB_ENV
-                ;;
-              oneplus_13)
-                echo 'KERNEL_TIME=Fri Sep 19 06:13:40 UTC 2025' >> $GITHUB_ENV
-                ;;
-              realme_GT7)
-                echo 'KERNEL_TIME=Tue Jun 10 12:12:23 UTC 2025' >> $GITHUB_ENV
-                ;;
-              oneplus_ace5_pro | oneplus_13t | oneplus_ace5_ultra | realme_GT7pro_Speed | realme_GT7pro)
-                echo 'KERNEL_TIME=Tue Jul  1 19:48:18 UTC 2025' >> $GITHUB_ENV
-                ;;
-            esac
-            echo "使用官核时间: ${{ env.KERNEL_TIME }}"
-          else
-            echo "使用自定义构建时间: ${{ github.event.inputs.custom_kernel_time }}"
-            echo "KERNEL_TIME=${{ github.event.inputs.custom_kernel_time }}" >> $GITHUB_ENV
-          fi
           
       - name: 🚀 Maximize Build Space  (最大化构建空间)
         uses: easimon/maximize-build-space@master
@@ -214,7 +86,7 @@ jobs:
             ccache-${{ runner.os }}-${{ env.DEVICES_NAME }}-
             ccache-${{ runner.os }}-
 
-      - name: 📥 Init ccache (如果是第一次运行则初始化Cceche)
+      - name: 📥 Init ccache (如果是第一次运行则初始化ccache)
         run: |
           export CCACHE_COMPILERCHECK="%compiler% -dumpmachine; %compiler% -dumpversion"
           export CCACHE_NOHASHDIR="true"
@@ -444,9 +316,6 @@ jobs:
           
       - name: 🔧 Apply Sched Patch (应用完美风驰补丁)
         run: |
-          if [ "$SCHED_FILE" = "none" ]; then
-          echo "该机型自带风驰，跳过应用补丁"
-          else
           cd kernel_workspace/kernel_platform/common
           if [ "${{ env.ENABLE_FEATURE_Z }}" = "true" ]; then
             git clone https://github.com/Numbersf/SCHED_PATCH.git -b "sm8750"
@@ -468,7 +337,6 @@ jobs:
             echo "正在打OGKI转换GKI补丁"
             patch -p1 -F 3 < hmbird_patch.patch
             echo "OGKI转换GKI_patch完成"
-          fi
           fi
 
       - name: 🔨 Build Kernel (构建内核)
@@ -504,7 +372,7 @@ jobs:
             cp "$image_path" ./AnyKernel3/Image
             cp "$image_path" kernel_workspace/kernel_platform/out/Final-Image-Find/Image
           fi
-          
+
       - name: Download Latest SukiSU-Ultra APK from CI
         continue-on-error: true
         env:
@@ -533,7 +401,7 @@ jobs:
         with:
          name: AK3_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_SuKiSU
          path: ./AnyKernel3/*
-
+    
     release:
     needs: build
     runs-on: ubuntu-latest
@@ -579,6 +447,7 @@ jobs:
             ### 📱 欧加真 Android 15/16 ${{ env.KSU_BRANCH }}  构建信息
             - 内核版本号: ${{ env.FULL_VERSION }}
             - 编译时间: ${{ env.TIME_FORM }}
+            - 机型：欧加真天玑9400+ Android 15/16内核通用
             - 特性：${{ env.KSU_BRANCH }} + SUSFS + 风驰内核
             - 推荐系统：ColorOS 15 / RealmeUI 6.0
             ### ⏫️ 更新内容：
