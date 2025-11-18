@@ -490,7 +490,6 @@ jobs:
           rm -rf ./AnyKernel3/.git
           mkdir -p kernel_workspace/kernel_platform/out/Final-Image-Find/
           dir1=""
-          dir2=""
           image_path=$(find "./kernel_workspace/kernel_platform/common/out/" -name "Image" | head -n 1)
           if [ -n "$image_path" ]; then
             dir1=$(dirname "$image_path")/
@@ -503,6 +502,7 @@ jobs:
             echo "Image file finally located at: $image_path"
             cp "$image_path" ./AnyKernel3/Image
             cp "$image_path" kernel_workspace/kernel_platform/out/Final-Image-Find/Image
+            zip -r ../AnyKernel3_SukiSU-Ultra_${{ env.KERNEL_VERSION }}.zip ./*
           fi
           
       - name: Download Latest SukiSU-Ultra APK from CI
@@ -532,7 +532,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
          name: AK3
-         path: ./AnyKernel3/*
+         path: ./AnyKernel3/*.zip
 
       - name: 📤 Upload APK (上传 APK)
         uses: actions/upload-artifact@v4
