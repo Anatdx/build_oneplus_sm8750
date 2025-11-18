@@ -101,8 +101,8 @@ jobs:
               echo "SCHED_FILE=oneplus_13_b" >> $GITHUB_ENV
               ;;
             realme_GT7pro)
-              echo "REPO_MANIFEST=oneplus_13_b" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_13_b" >> $GITHUB_ENV
+              echo "REPO_MANIFEST=realme_GT7pro" >> $GITHUB_ENV
+              echo "SCHED_FILE=none" >> $GITHUB_ENV
               ;;
             realme_GT7pro_Speed)
               echo "REPO_MANIFEST=oneplus_13_b" >> $GITHUB_ENV
@@ -444,6 +444,9 @@ jobs:
           
       - name: 🔧 Apply Sched Patch (应用完美风驰补丁)
         run: |
+          if [ "$SCHED_FILE" = "none" ]; then
+          echo "该机型自带风驰，跳过应用补丁"
+          else
           cd kernel_workspace/kernel_platform/common
           if [ "${{ env.ENABLE_FEATURE_Z }}" = "true" ]; then
             git clone https://github.com/Numbersf/SCHED_PATCH.git -b "sm8750"
@@ -465,6 +468,7 @@ jobs:
             echo "正在打OGKI转换GKI补丁"
             patch -p1 -F 3 < hmbird_patch.patch
             echo "OGKI转换GKI_patch完成"
+          fi
           fi
 
       - name: 🔨 Build Kernel (构建内核)
