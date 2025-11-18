@@ -534,7 +534,7 @@ jobs:
          name: AK3_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_SuKiSU
          path: ./AnyKernel3/*
 
-    release:
+  release:
     needs: build
     runs-on: ubuntu-latest
     permissions:
