@@ -269,43 +269,7 @@ jobs:
           echo "正在启用BBG基带守护…"
           curl -LSs https://raw.githubusercontent.com/vc-teahouse/Baseband-guard/main/setup.sh | bash
           sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/lockdown/lockdown,baseband_guard/ } }' ./security/Kconfig
-          
-
-      - name: 📥 Kernel Version Handling
-        run: |
-          cd kernel_workspace/kernel_platform
-          # 获取内核 Android 版本号(KANDROID_VERSION)以及内核版本号(KERNEL_VERSION)
-          for f in ./common/build.config.constants ./common/build.config.common; do
-            if [ -f "$f" ]; then
-              BRANCH=$(grep -m1 '^BRANCH=' "$f" | cut -d= -f2)
-              [ -n "$BRANCH" ] && break
-            fi
-          done
-
-          if [ -n "$BRANCH" ]; then
-            echo "KANDROID_VERSION=${BRANCH%-*}" >> $GITHUB_ENV
-            echo "KERNEL_VERSION=${BRANCH#*-}" >> $GITHUB_ENV
-          else
-            echo "No BRANCH found in build.config files"
-          fi
-
-          # 从 Makefile 获取完整内核版本号(TKERNEL_VERSION)以及可选的修改内核等级
-          ORIG_VERSION=$(awk '/^VERSION =/ {v=$3} /^PATCHLEVEL =/ {p=$3} /^SUBLEVEL =/ {s=$3} END {print v"."p"."s}' ./common/Makefile)
-
-          # 强制修改 SUBLEVEL(内核等级)，默认关闭
-          # sed -i 's/^SUBLEVEL[[:space:]]*=[[:space:]]*.*/SUBLEVEL = 99/' ./common/Makefile
-
-          # 读取修改后的版本
-          NEW_VERSION=$(awk '/^VERSION =/ {v=$3} /^PATCHLEVEL =/ {p=$3} /^SUBLEVEL =/ {s=$3} END {print v"."p"."s}' ./common/Makefile)
-
-          if [ "$ORIG_VERSION" != "$NEW_VERSION" ]; then
-            echo "Kernel Version:$ORIG_VERSION->$NEW_VERSION"
-            echo "TKERNEL_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          else
-            echo "Kernel Version:$ORIG_VERSION No changes"
-            echo "TKERNEL_VERSION=$ORIG_VERSION" >> $GITHUB_ENV
-          fi
-
+         
       - name: ⚙️ Set SuKiSU Ultra (设置SuKiSU Ultra)
         run: |
           set -e
@@ -354,6 +318,41 @@ jobs:
           grep -A10 "REPO_OWNER" kernel/Makefile
           grep "KSU_VERSION_FULL" kernel/Makefile
           echo "::endgroup::"
+
+      - name: 📥 Kernel Version Handling
+        run: |
+          cd kernel_workspace/kernel_platform
+          # 获取内核 Android 版本号(KANDROID_VERSION)以及内核版本号(KERNEL_VERSION)
+          for f in ./common/build.config.constants ./common/build.config.common; do
+            if [ -f "$f" ]; then
+              BRANCH=$(grep -m1 '^BRANCH=' "$f" | cut -d= -f2)
+              [ -n "$BRANCH" ] && break
+            fi
+          done
+
+          if [ -n "$BRANCH" ]; then
+            echo "KANDROID_VERSION=${BRANCH%-*}" >> $GITHUB_ENV
+            echo "KERNEL_VERSION=${BRANCH#*-}" >> $GITHUB_ENV
+          else
+            echo "No BRANCH found in build.config files"
+          fi
+
+          # 从 Makefile 获取完整内核版本号(TKERNEL_VERSION)以及可选的修改内核等级
+          ORIG_VERSION=$(awk '/^VERSION =/ {v=$3} /^PATCHLEVEL =/ {p=$3} /^SUBLEVEL =/ {s=$3} END {print v"."p"."s}' ./common/Makefile)
+
+          # 强制修改 SUBLEVEL(内核等级)，默认关闭
+          # sed -i 's/^SUBLEVEL[[:space:]]*=[[:space:]]*.*/SUBLEVEL = 99/' ./common/Makefile
+
+          # 读取修改后的版本
+          NEW_VERSION=$(awk '/^VERSION =/ {v=$3} /^PATCHLEVEL =/ {p=$3} /^SUBLEVEL =/ {s=$3} END {print v"."p"."s}' ./common/Makefile)
+
+          if [ "$ORIG_VERSION" != "$NEW_VERSION" ]; then
+            echo "Kernel Version:$ORIG_VERSION->$NEW_VERSION"
+            echo "TKERNEL_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          else
+            echo "Kernel Version:$ORIG_VERSION No changes"
+            echo "TKERNEL_VERSION=$ORIG_VERSION" >> $GITHUB_ENV
+          fi
 
       - name: 🔧 Set up SUSFS (配置 SUSFS)
         run: |
@@ -564,15 +563,10 @@ jobs:
 
       - name: 🔧 设置环境变量
         run: |
-          if [[ -n "${{ github.event.inputs.kernel_suffix }}" ]]; then
-            FULL_VERSION=${{ format('{0}.50-{1}', env.KERNEL_VERSION, github.event.inputs.kernel_suffix) }}
-            echo "FULL_VERSION=$FULL_VERSION" >> $GITHUB_ENV
-            export FULL_VERSION=$FULL_VERSION
-          else
-            FULL_VERSION=${{ format('{0}.50-{1}', env.KERNEL_VERSION, env.KERNEL_NAME) }}
-            echo "FULL_VERSION=$FULL_VERSION" >> $GITHUB_ENV
-            export FULL_VERSION=$FULL_VERSION
-          fi
+          
+          FULL_VERSION=${{ format('{0}.50-{1}', env.TKERNEL_VERSION, env.KERNEL_NAME) }}
+          echo "FULL_VERSION=$FULL_VERSION" >> $GITHUB_ENV
+          export FULL_VERSION=$FULL_VERSION
           TIME="$(TZ='Asia/Shanghai' date +'%y%m%d%H%M%S')"
           TIME_FORM="$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M:%S')"
           echo "TIME=$TIME" >> $GITHUB_ENV
@@ -596,9 +590,9 @@ jobs:
             - 特性：${{ env.KSU_BRANCH }} + SUSFS + 风驰内核
             - 推荐系统：ColorOS 15/16
             ### ⏫️ 更新内容：
-            - 更新${{ env.KSU_BRANCH }}至最新版本（${{ env.KERNEL_VERSION }}）
+            - 更新${{ env.KSU_BRANCH }}至最新版本（${{ env.KSU_API_VERSION }}）
           draft: false
           prerelease: false
           files: |
-            release/*.zip
+            release/AnyKernel3*.zip
             release/*.apk
