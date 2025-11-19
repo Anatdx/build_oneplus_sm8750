@@ -4,7 +4,7 @@ on:
   
 jobs:
   build:
-    name: Build_${{ github.event.inputs.DEVICES_NAME }}
+    name: Bulid_oneplus_ace5_ultra
     runs-on: ubuntu-latest
     env:
       DEVICES_NAME: oneplus_ace5_ultra
@@ -374,7 +374,7 @@ jobs:
             zip -r ../AnyKernel3_SukiSU-Ultra_${{ env.KERNEL_VERSION }}.zip ./*
           fi
 
-      - name: 📤 Download Latest SukiSU-Ultra APK from CI
+      - name: Download Latest SukiSU-Ultra APK from CI (从CI下载最新的SukiSU-Ultra安装包)
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -397,13 +397,13 @@ jobs:
             fi
           fi
           
-      - name: 📤 Upload AnyKernel3 (上传 Anykernel3)
+      - name: 📤 Upload AnyKernel3 (上传Anykernel3)
         uses: actions/upload-artifact@v4
         with:
          name: AK3
          path: ./*.zip
 
-      - name: 📤 Upload APK (上传 APK)
+      - name: 📤 Upload APK (上传APK)
         uses: actions/upload-artifact@v4
         with:
          name: APK
@@ -418,19 +418,19 @@ jobs:
       actions: read
       
     steps:
-      - name: 📤 Download AnyKernel3 (下载 Anykernel3)
+      - name: 📥 Download AnyKernel3 (下载Anykernel3)
         uses: actions/download-artifact@v4
         with:
           name: AK3
           path: ./release
 
-      - name: 📤 Download APK (下载 APK)
+      - name: 📥 Download APK (下载APK)
         uses: actions/download-artifact@v4
         with:
           name: APK
           path: ./release
 
-      - name: 设置环境变量
+      - name: 🔧 设置环境变量
         run: |
           if [[ -n "${{ github.event.inputs.kernel_suffix }}" ]]; then
             FULL_VERSION=${{ format('{0}.50-{1}', env.KERNEL_VERSION, github.event.inputs.kernel_suffix) }}
@@ -450,7 +450,7 @@ jobs:
           KSU_BRANCH="SukiSU Ultra"
           echo "KSU_BRANCH=$KSU_BRANCH" >> $GITHUB_ENV
          
-      - name: 创建发布
+      - name: 🎉 创建发布
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
