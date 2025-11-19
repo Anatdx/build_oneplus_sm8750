@@ -502,6 +502,7 @@ jobs:
             echo "Image file finally located at: $image_path"
             cp "$image_path" ./AnyKernel3/Image
             cp "$image_path" kernel_workspace/kernel_platform/out/Final-Image-Find/Image
+            cd AnyKernel3
             zip -r ../AnyKernel3_SukiSU-Ultra_${{ env.KERNEL_VERSION }}.zip ./*
           fi
           
