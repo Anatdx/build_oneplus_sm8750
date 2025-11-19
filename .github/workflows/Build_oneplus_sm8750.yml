@@ -281,7 +281,9 @@ jobs:
         run: |
           cd kernel_workspace/kernel_platform/common
           echo "正在添加Re-Kernel支持…"
-          curl -LSs "https://raw.githubusercontent.com/Sakion-Team/Re-Kernel/refs/heads/main/Integrate/patches.sh" -o patches.sh
+          git clone https://github.com/Sakion-Team/Re-Kernel.git
+          cp -r Re-Kernel/Integrate/* ./ 
+          rm -rf Re-Kernel
           chmod +x patches.sh
           ./patches.sh
          
